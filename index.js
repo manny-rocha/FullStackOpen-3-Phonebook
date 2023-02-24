@@ -38,8 +38,8 @@ let data = [
    },
    { 
     "id": 5,
-    "name": "Jombo Bar", 
-    "number": "256-534-1565"
+    "name": "Jombo Wilkins", 
+    "number": "265-810-8796"
    }
 ]
 
