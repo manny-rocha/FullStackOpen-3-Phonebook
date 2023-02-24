@@ -1,6 +1,10 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+
+const Entry = require('./models/entry')
+
 const app = express()
 
 
@@ -20,33 +24,7 @@ app.use(morgan(function (tokens, req, res) {
 
 app.use(express.json())
 
-let data = [
-   { 
-    "id": 1,
-    "name": "Arto Hellas", 
-    "number": "040-123456"
-   },
-   { 
-    "id": 2,
-    "name": "Ada Lovelace", 
-    "number": "39-44-5323523"
-   },
-   { 
-    "id": 3,
-    "name": "Dan Abramov", 
-    "number": "12-43-234345"
-   },
-   { 
-    "id": 4,
-    "name": "Mary Poppendieck", 
-    "number": "39-23-6423122"
-   },
-   { 
-    "id": 5,
-    "name": "Jombo Wilkins", 
-    "number": "265-810-8796"
-   }
-]
+let data = [];
 
 app.get('/info', function (req, res) {
     let currentDate = new Date();
@@ -57,54 +35,42 @@ app.get('/info', function (req, res) {
     );
 })
 
-app.get('/api/persons', cors(), (req, res) => {
-    res.json(data);
+app.get('/api/persons', (req, res) => {
+    Entry.find({}).then()(entries => {
+        res.json(entries);
+    })
 });
 
 app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id);
-
-    const person = data.find(person => person.id === id);
-
-    if (person) {
-        res.json(person);
-    } else {
-        res.status(404).end;
-    }
+    Entry.findById(req.params.id).then(entry => {
+        res.json(entry);
+    });
 });
-
-const generateId = () => {
-    const maxId = data.length > 0
-      ? Math.max(...data.map(n => n.id))
-      : 0
-    return maxId + 1
-}
 
 app.post('/api/persons', (req, res) => {
     const body = req.body;
 
-    if (!body.name || !body.number) {
+    if (body.name === undefined || body.number === undefined) {
         return res.status(400).json({
             error: 'Name or number not provided'
         })
     }
 
-    const duplicates = data.some(person => person.name  === body.name || person.number === body.number)
-    if (duplicates) {
-        return res.status(400).json({
-            error: 'Name or number already exists'
-        })
-    }
+    // const duplicates = data.some(person => person.name  === body.name || person.number === body.number)
+    // if (duplicates) {
+    //     return res.status(400).json({
+    //         error: 'Name or number already exists'
+    //     })
+    // }
 
-    const person = {
+    const entry = new Entry({
         name: body.name,
         number: body.number,
-        id: generateId()
-    }
+    })
     
-    data = data.concat(person);
-
-    res.json(person);
+    entry.save().then(savedEntry => {
+        res.json(savedEntry)
+    }) 
 });
 
 app.delete('/api/persons/:id', (req, res) => {
