@@ -78,7 +78,7 @@ app.post("/api/persons", (req, res, next) => {
 app.put("/api/persons/:id", (req, res, next) => {
     const body = req.body;
 
-    const updatedEntry ({
+    const updatedEntry = ({
         name: body.name,
         number: body.number
     })
