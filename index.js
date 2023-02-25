@@ -5,9 +5,9 @@ const morgan = require("morgan");
 
 const Entry = require("./models/entry");
 
-app.use(cors());
-const app = express();
 
+const app = express();
+app.use(cors());
 app.use(express.static("build"));
 
 app.use(
