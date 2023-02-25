@@ -1,9 +1,11 @@
+const cors = require('cors');
 require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 
 const Entry = require("./models/entry");
 
+app.use(cors());
 const app = express();
 
 app.use(express.static("build"));
