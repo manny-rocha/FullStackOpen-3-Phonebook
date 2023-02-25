@@ -6,7 +6,6 @@ require('dotenv').config()
 const Entry = require('./models/entry')
 
 
-
 app.use(cors())
 app.use(express.static('build'))
 
