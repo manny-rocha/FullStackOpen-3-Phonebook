@@ -1,14 +1,14 @@
-const cors = require('cors');
-require("dotenv").config();
-const express = require("express");
-const morgan = require("morgan");
+const express = require('express')
+const app = express()
+const morgan = require('morgan')
+const cors = require('cors')
+require('dotenv').config()
+const Entry = require('./models/entry')
 
-const Entry = require("./models/entry");
 
 
-const app = express();
-app.use(cors());
-app.use(express.static("build"));
+app.use(cors())
+app.use(express.static('build'))
 
 app.use(
   morgan(function (tokens, req, res) {
@@ -16,108 +16,108 @@ app.use(
       tokens.method(req, res),
       tokens.url(req, res),
       tokens.status(req, res),
-      tokens.res(req, res, "content-length"),
-      "-",
-      tokens["response-time"](req, res),
-      "ms",
-      req.method === "POST" ? JSON.stringify(req.body) : "",
-    ].join(" ");
+      tokens.res(req, res, 'content-length'),
+      '-',
+      tokens['response-time'](req, res),
+      'ms',
+      req.method === 'POST' ? JSON.stringify(req.body) : '',
+    ].join(' ')
   })
-);
+)
 
-app.use(express.json());
+app.use(express.json())
 
-app.get("/info", function (req, res) {
-  let currentDate = new Date();
-  
+app.get('/info', function (req, res) {
+  let currentDate = new Date()
+
   Entry.countDocuments({}).then(count => {
     res.send(
-        `<!DOCTYPE html>
+      `<!DOCTYPE html>
             <h2>Phonebook has info for ${count} people</h2>
             <h3>${currentDate}</h3>`
     )
   })
-    .catch(err => next(err));
-});
+    .catch(err => next(err))
+})
 
-app.get("/api/persons", (req, res) => {
+app.get('/api/persons', (req, res) => {
   Entry.find({}).then((entries) => {
-    res.json(entries);
-  });
-});
+    res.json(entries)
+  })
+})
 
-app.get("/api/persons/:id", (req, res, next) => {
+app.get('/api/persons/:id', (req, res, next) => {
   Entry.findById(req.params.id)
     .then((entry) => {
       if (entry) {
-        res.json(entry);
+        res.json(entry)
       } else {
-          res.status(404).end();
+        res.status(404).end()
       }
     })
-    .catch(err => next(err));
-});
+    .catch(err => next(err))
+})
 
-app.post("/api/persons", (req, res, next) => {
-  const body = req.body;
+app.post('/api/persons', (req, res, next) => {
+  const body = req.body
 
   if (body.name === undefined || body.number === undefined) {
     return res.status(400).json({
-      error: "Name or number not provided",
-    });
+      error: 'Name or number not provided',
+    })
   }
 
   const entry = new Entry({
     name: body.name,
     number: body.number,
-  });
+  })
 
   entry.save().then((savedEntry) => {
-    res.json(savedEntry);
-  });
-});
+    res.json(savedEntry)
+  })
+})
 
-app.put("/api/persons/:id", (req, res, next) => {
-    const body = req.body;
+app.put('/api/persons/:id', (req, res, next) => {
+  const body = req.body
 
-    const updatedEntry = ({
-        name: body.name,
-        number: body.number
+  const updatedEntry = ({
+    name: body.name,
+    number: body.number
+  })
+
+  Entry.findByIdAndUpdate(req.params.id, updatedEntry, { new: true }).then(result => {
+    res.json(result)
+  })
+    .catch(err => next(err))
+})
+
+app.delete('/api/persons/:id', (req, res) => {
+  Entry.findByIdAndRemove(req.params.id)
+    .then(result => {
+      res.status(204).end()
     })
+    .catch(err => next(err))
+})
 
-    Entry.findByIdAndUpdate(req.params.id, updatedEntry, { new: true }).then(result => {
-        res.json(result);
-    })
-    .catch(err => next(err));
-});
-
-app.delete("/api/persons/:id", (req, res) => {
-    Entry.findByIdAndRemove(req.params.id)
-        .then(result => {
-            res.status(204).end();
-        })
-        .catch(err => next(err));
-});
-
-const PORT = process.env.PORT;
+const PORT = process.env.PORT
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  console.log(`Server running on port ${PORT}`)
+})
 
 const unknownEndpoint = (req, res) => {
-    res.status(404).send({ error: 'unknown endpoint' })
-};
+  res.status(404).send({ error: 'unknown endpoint' })
+}
 
-app.use(unknownEndpoint);
+app.use(unknownEndpoint)
 
 const errorHandler = (err, req, res, next) => {
-    console.error(err.message);
+  console.error(err.message)
 
-    if (err.name === 'CastError') {
-        return res.status(400).send({ error: 'malformatted id' })
-    }
-    
-    next(err);
-};
+  if (err.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted id' })
+  }
 
-app.use(errorHandler);
+  next(err)
+}
+
+app.use(errorHandler)
